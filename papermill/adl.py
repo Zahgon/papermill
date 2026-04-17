@@ -1,9 +1,6 @@
 """Utilities for working with Azure data lake storage"""
-
 import re
-
 from azure.datalake.store import core, lib
-
 
 class ADL:
     """
@@ -22,19 +19,13 @@ class ADL:
 
     @classmethod
     def _split_url(cls, url):
-        match = re.match(r'adl://(.*)\.azuredatalakestore\.net\/(.*)$', url)
-        if not match:
-            raise Exception(f"Invalid ADL url '{url}'")
-        else:
-            return (match.group(1), match.group(2))
+        pass
 
     def _get_token(self):
-        if self.token is None:
-            self.token = lib.auth()
-        return self.token
+        pass
 
     def _create_adapter(self, store_name):
-        return core.AzureDLFileSystem(self._get_token(), store_name=store_name)
+        pass
 
     def listdir(self, url):
         """Returns a list of the files under the specified path"""
@@ -42,17 +33,8 @@ class ADL:
 
     def read(self, url):
         """Read storage at a given url"""
-        (store_name, path) = self._split_url(url)
-        adapter = self._create_adapter(store_name)
-        lines = []
-        with adapter.open(path) as f:
-            for line in f:
-                lines.append(line.decode())
-        return lines
+        pass
 
     def write(self, buf, url):
         """Write buffer to storage at a given url"""
-        (store_name, path) = self._split_url(url)
-        adapter = self._create_adapter(store_name)
-        with adapter.open(path, 'wb') as f:
-            f.write(buf.encode())
+        pass

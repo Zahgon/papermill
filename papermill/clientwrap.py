@@ -1,17 +1,14 @@
 import asyncio
 import sys
-
 from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionError
 from traitlets import Bool, Instance
-
 
 class PapermillNotebookClient(NotebookClient):
     """
     Module containing a  that executes the code cells
     and updates outputs
     """
-
     log_output = Bool(False).tag(config=True)
     stdout_file = Instance(object, default_value=None).tag(config=True)
     stderr_file = Instance(object, default_value=None).tag(config=True)
@@ -34,20 +31,7 @@ class PapermillNotebookClient(NotebookClient):
         """
         Wraps the parent class process call slightly
         """
-        self.reset_execution_trackers()
-
-        # See https://bugs.python.org/issue37373 :(
-        if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-        with self.setup_kernel(**kwargs):
-            self.log.info(f"Executing notebook with kernel: {self.kernel_name}")
-            self.papermill_execute_cells()
-            info_msg = self.wait_for_reply(self.kc.kernel_info())
-            self.nb.metadata['language_info'] = info_msg['content']['language_info']
-            self.set_widgets_metadata()
-
-        return self.nb
+        pass
 
     def papermill_execute_cells(self):
         """
@@ -65,16 +49,7 @@ class PapermillNotebookClient(NotebookClient):
         3. We want to include timing and execution status information with the
            metadata of each cell.
         """
-        # Execute each cell and update the output in real time.
-        for index, cell in enumerate(self.nb.cells):
-            try:
-                self.nb_man.cell_start(cell, index)
-                self.execute_cell(cell, index)
-            except CellExecutionError as ex:
-                self.nb_man.cell_exception(self.nb.cells[index], cell_index=index, exception=ex)
-                break
-            finally:
-                self.nb_man.cell_complete(self.nb.cells[index], cell_index=index)
+        pass
 
     def log_output_message(self, output):
         """

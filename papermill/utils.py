@@ -3,11 +3,8 @@ import os
 import warnings
 from contextlib import contextmanager
 from functools import wraps
-
 from .exceptions import PapermillParameterOverwriteWarning
-
 logger = logging.getLogger('papermill.utils')
-
 
 def any_tagged_cell(nb, tag):
     """Whether the notebook contains at least one cell tagged ``tag``?
@@ -24,8 +21,7 @@ def any_tagged_cell(nb, tag):
     bool
         Whether the notebook contains a cell tagged ``tag``?
     """
-    return any([tag in cell.metadata.tags for cell in nb.cells])
-
+    pass
 
 def nb_kernel_name(nb, name=None):
     """Helper for fetching out the kernel name from a notebook object.
@@ -42,8 +38,7 @@ def nb_kernel_name(nb, name=None):
     str
         The name of the kernel or an empty string if none is found
     """
-    return name or nb.metadata.get('kernelspec', {}).get('name', '')
-
+    pass
 
 def nb_language(nb, language=None):
     """Helper for fetching out the programming language from a notebook object.
@@ -65,14 +60,7 @@ def nb_language(nb, language=None):
     ValueError
         If no notebook language is found or provided
     """
-    language = language or nb.metadata.get('language_info', {}).get('name')
-    if not language:
-        # v3 language path for old notebooks that didn't convert cleanly
-        language = language or nb.metadata.get('kernelspec', {}).get('language')
-    if not language:
-        raise ValueError("No language found in notebook and no override provided.")
-    return language
-
+    pass
 
 def find_first_tagged_cell_index(nb, tag):
     """Find the first tagged cell ``tag`` in the notebook.
@@ -89,14 +77,7 @@ def find_first_tagged_cell_index(nb, tag):
     nbformat.NotebookNode
         Whether the notebook contains a cell tagged ``tag``?
     """
-    parameters_indices = []
-    for idx, cell in enumerate(nb.cells):
-        if tag in cell.metadata.tags:
-            parameters_indices.append(idx)
-    if not parameters_indices:
-        return -1
-    return parameters_indices[0]
-
+    pass
 
 def merge_kwargs(caller_args, **callee_args):
     """Merge named argument.
@@ -117,13 +98,7 @@ def merge_kwargs(caller_args, **callee_args):
     args : dict
        Merged arguments
     """
-    conflicts = set(caller_args) & set(callee_args)
-    if conflicts:
-        args = format('; '.join([f'{key}={value}' for key, value in callee_args.items()]))
-        msg = f"Callee will overwrite caller's argument(s): {args}"
-        warnings.warn(msg, PapermillParameterOverwriteWarning)
-    return dict(caller_args, **callee_args)
-
+    pass
 
 def remove_args(args=None, **kwargs):
     """Remove arguments from kwargs.
@@ -140,19 +115,10 @@ def remove_args(args=None, **kwargs):
     kwargs : dict
        New dictionary of arguments
     """
-    if not args:
-        return kwargs
-    return {k: v for k, v in kwargs.items() if k not in args}
+    pass
 
-
-# retry decorator
 def retry(num):
-    def decorate(func):
-        @wraps(func)
-        pass
-
-    return decorate
-
+    pass
 
 @contextmanager
 def chdir(path):
@@ -160,13 +126,4 @@ def chdir(path):
 
     `path` can be `None` in which case this is a no-op.
     """
-    if path is None:
-        yield
-
-    else:
-        old_dir = os.getcwd()
-        os.chdir(path)
-        try:
-            yield
-        finally:
-            os.chdir(old_dir)
+    pass

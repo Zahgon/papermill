@@ -1,17 +1,12 @@
 """Utilities for working with S3."""
-
 import logging
 import os
 import threading
 import zlib
-
 from boto3.session import Session
-
 from .exceptions import AwsError
 from .utils import retry
-
 logger = logging.getLogger('papermill.s3')
-
 
 class Bucket:
     """
@@ -33,7 +28,6 @@ class Bucket:
     def list(self, prefix='', delimiter=None):
         """Limits a list of Bucket's objects based on prefix and delimiter."""
         pass
-
 
 class Prefix:
     """
@@ -62,7 +56,6 @@ class Prefix:
     def __repr__(self):
         return self.__str__()
 
-
 class Key:
     """
     A key that represents a unique object in an S3 Bucket.
@@ -84,18 +77,7 @@ class Key:
 
     """
 
-    # TODO make size, etag, etc properties that can be called from the
-    # object as needed
-    def __init__(
-        self,
-        bucket,
-        name,
-        size=None,
-        etag=None,
-        last_modified=None,
-        storage_class=None,
-        service=None,
-    ):
+    def __init__(self, bucket, name, size=None, etag=None, last_modified=None, storage_class=None, service=None):
         self.bucket = Bucket(bucket, service=service)
         self.name = name
         self.size = size
@@ -115,7 +97,6 @@ class Key:
     def __repr__(self):
         return self.__str__()
 
-
 class S3:
     """
     Wraps S3.
@@ -134,7 +115,6 @@ class S3:
         - read
 
     """
-
     s3_session = (None, None, None)
     lock = threading.RLock()
 
@@ -143,81 +123,43 @@ class S3:
             if not all(S3.s3_session):
                 session = Session()
                 client = session.client('s3')
-
                 session_params = {}
                 endpoint_url = os.environ.get('BOTO3_ENDPOINT_URL', None)
                 if endpoint_url:
                     session_params['endpoint_url'] = endpoint_url
-
                 s3 = session.resource('s3', **session_params)
                 S3.s3_session = (session, client, s3)
-
         (self.session, self.client, self.s3) = S3.s3_session
 
     def _bucket_name(self, bucket):
-        return self._clean(bucket).split('/', 1)[0]
+        pass
 
     def _clean(self, name):
-        name = self._clean_s3(name)
-        if self._is_s3(name):
-            return name[5:]
-        return name
+        pass
 
     def _clean_s3(self, name):
-        return f"s3:{name[4:]}" if name.startswith('s3n:') else name
+        pass
 
     def _get_key(self, name):
-        if isinstance(name, Key):
-            return name
-
-        return Key(bucket=self._bucket_name(name), name=self._key_name(name), service=self)
+        pass
 
     def _key_name(self, name):
-        cleaned = self._clean(name).split('/', 1)
-        return cleaned[1] if len(cleaned) > 1 else None
+        pass
 
     @retry(3)
-    def _list(
-        self,
-        prefix='',
-        bucket=None,
-        delimiter=None,
-        keys=False,
-        objects=False,
-        page_size=1000,
-        **kwargs,
-    ):
+    def _list(self, prefix='', bucket=None, delimiter=None, keys=False, objects=False, page_size=1000, **kwargs):
         pass
 
     def _put(self, source, dest, num_callbacks=10, policy='bucket-owner-full-control', **kwargs):
         pass
 
     def _put_string(self, source, dest, num_callbacks=10, policy='bucket-owner-full-control', **kwargs):
-        key = self._get_key(dest)
-        obj = self.s3.Object(key.bucket.name, key.name)
-
-        if isinstance(source, str):
-            source = source.encode('utf-8')
-        obj.put(Body=source, ACL=policy)
-        return key
+        pass
 
     def _is_s3(self, name):
-        # only allow file objects from local
-        if not isinstance(name, (str, Key, Prefix)):
-            return False
+        pass
 
-        name = self._clean_s3(name)
-        return 's3://' in name
-
-    def cat(
-        self,
-        source,
-        buffersize=None,
-        memsize=2**24,
-        compressed=False,
-        encoding='UTF-8',
-        raw=False,
-    ):
+    def cat(self, source, buffersize=None, memsize=2 ** 24, compressed=False, encoding='UTF-8', raw=False):
         """
         Returns an iterator for the data in the key or nothing if the key
         doesn't exist. Decompresses data on the fly (if compressed is True
@@ -225,87 +167,7 @@ class S3:
         skip encoding.
 
         """
-        assert self._is_s3(source) or isinstance(source, Key), 'source must be a valid s3 path'
-
-        key = self._get_key(source) if not isinstance(source, Key) else source
-        compressed = (compressed or key.name.endswith('.gz')) and not raw
-        if compressed:
-            decompress = zlib.decompressobj(16 + zlib.MAX_WBITS)
-
-        size = 0
-        bytes_read = 0
-        err = None
-        undecoded = ''
-        if key:
-            # try to read the file multiple times
-            for i in range(100):
-                obj = self.s3.Object(key.bucket.name, key.name)
-                buffersize = buffersize if buffersize is not None else 2**20
-
-                if not size:
-                    size = obj.content_length
-                elif size != obj.content_length:
-                    raise AwsError('key size unexpectedly changed while reading')
-
-                # For an empty file, 0 (first-bytes-pos) is equal to the length of the object
-                # hence the range is "unsatisfiable", and botocore correctly handles it by
-                # raising an exception. We'd rather just return with empty file contents here.
-                if size == 0:
-                    break
-
-                r = obj.get(Range=f"bytes={bytes_read}-")
-
-                try:
-                    while bytes_read < size:
-                        # this making this weird check because this call is
-                        # about 100 times slower if the amt is too high
-                        if size - bytes_read > buffersize:
-                            bytes = r['Body'].read(amt=buffersize)
-                        else:
-                            bytes = r['Body'].read()
-                        if compressed:
-                            s = decompress.decompress(bytes)
-                        else:
-                            s = bytes
-
-                        if encoding and not raw:
-                            try:
-                                decoded = undecoded + s.decode(encoding)
-                                undecoded = ''
-                                yield decoded
-                            except UnicodeDecodeError:
-                                undecoded += s
-                                if len(undecoded) > memsize:
-                                    raise
-                        else:
-                            yield s
-
-                        bytes_read += len(bytes)
-
-                except zlib.error:
-                    logger.error("Error while decompressing [%s]", key.name)
-                    raise
-                except UnicodeDecodeError:
-                    raise
-                except Exception:
-                    err = True
-                    pass
-
-                if size <= bytes_read:
-                    break
-
-            if size != bytes_read:
-                if err:
-                    raise Exception
-                else:
-                    raise AwsError(f'Failed to fully read [{source.name}]')
-
-            if undecoded:
-                assert encoding is not None  # only time undecoded is set
-
-                # allow exception to be raised if one is thrown
-                decoded = undecoded.decode(encoding)
-                yield decoded
+        pass
 
     def cp_string(self, source, dest, **kwargs):
         """
@@ -318,11 +180,7 @@ class S3:
         dest: string
             the s3 location
         """
-
-        assert isinstance(source, str), "source must be a string"
-        assert self._is_s3(dest), "Destination must be s3 location"
-
-        return self._put_string(source, dest, **kwargs)
+        pass
 
     def list(self, name, iterator=False, **kwargs):
         """
@@ -373,16 +231,4 @@ class S3:
         Yields a line in file.
 
         """
-        buf = ''
-        for block in self.cat(source, compressed=compressed, encoding=encoding):
-            buf += block
-            if '\n' in buf:
-                ret, buf = buf.rsplit('\n', 1)
-                yield from ret.split('\n')
-
-        lines = buf.split('\n')
-        yield from lines[:-1]
-
-        # only yield the last line if the line has content in it
-        if lines[-1]:
-            yield lines[-1]
+        pass
