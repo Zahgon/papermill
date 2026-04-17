@@ -57,10 +57,7 @@ class AzureBlobStore:
 
     def listdir(self, url):
         """Returns a list of the files under the specified path"""
-        params = self._split_url(url)
-        blob_service_client = self._blob_service_client(params["account"], params["sas_token"])
-        container_client = blob_service_client.get_container_client(params["container"])
-        return list(container_client.list_blobs(params["blob"]))
+        pass
 
     def write(self, buf, url):
         """Write buffer to storage at a given url"""

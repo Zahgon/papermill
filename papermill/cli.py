@@ -24,10 +24,7 @@ OUTPUT_PIPED = not sys.stdout.isatty()
 
 
 def print_papermill_version(ctx, param, value):
-    if not value:
-        return
-    print(f"{papermill_version} from {__file__} ({platform.python_version()})")
-    ctx.exit()
+    pass
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))

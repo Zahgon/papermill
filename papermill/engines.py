@@ -67,16 +67,7 @@ def catch_nb_assignment(func):
     Used for callback methods when the caller may optionally have a new copy
     of the originally wrapped `nb` object.
     """
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        nb = kwargs.get('nb')
-        if nb:
-            # Reassign if executing notebook object was replaced
-            self.nb = nb
-        return func(self, *args, **kwargs)
-
-    return wrapper
+    pass
 
 
 class NotebookExecutionManager:
@@ -158,22 +149,7 @@ class NotebookExecutionManager:
         """Saves the notebook if it's been more than self.autosave_cell_every seconds
         since it was last saved.
         """
-        if self.autosave_cell_every == 0:
-            # feature is disabled
-            return
-        time_since_last_save = (self.now() - self.last_save_time).total_seconds()
-        if time_since_last_save >= self.autosave_cell_every:
-            start_save = self.now()
-            self.save()
-            save_elapsed = (self.now() - start_save).total_seconds()
-            if save_elapsed > self.autosave_cell_every * self.max_autosave_pct / 100.0:
-                # Autosave is taking too long, so exponentially back off.
-                self.autosave_cell_every *= 2
-                logger.warning(
-                    "Autosave too slow: {:.2f} sec, over {}% limit. Backing off to {} sec".format(
-                        save_elapsed, self.max_autosave_pct, self.autosave_cell_every
-                    )
-                )
+        pass
 
     @catch_nb_assignment
     def notebook_start(self, **kwargs):

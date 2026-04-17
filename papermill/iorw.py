@@ -58,12 +58,7 @@ except ImportError:
 
 
 def fallback_gs_is_retriable(e):
-    try:
-        print(e.code)
-        return e.code is None or e.code == 429
-    except AttributeError:
-        print(e)
-        return False
+    pass
 
 
 try:
@@ -102,13 +97,13 @@ class PapermillIO:
         return self.get_handler(path, extensions).write(buf, path)
 
     def listdir(self, path):
-        return self.get_handler(path).listdir(path)
+        pass
 
     def pretty_path(self, path):
         return self.get_handler(path).pretty_path(path)
 
     def reset(self):
-        self._handlers = []
+        pass
 
     def register(self, scheme, handler):
         # Keep these ordered as LIFO
@@ -203,8 +198,7 @@ class LocalHandler:
                 raise e
 
     def listdir(self, path):
-        with chdir(self._cwd):
-            return [os.path.join(path, fn) for fn in os.listdir(path)]
+        pass
 
     def write(self, buf, path):
         with chdir(self._cwd):
@@ -231,7 +225,7 @@ class S3Handler:
 
     @classmethod
     def listdir(cls, path):
-        return S3().listdir(path)
+        pass
 
     @classmethod
     def write(cls, buf, path):
@@ -256,7 +250,7 @@ class ADLHandler:
         return "\n".join(lines)
 
     def listdir(self, path):
-        return self._get_client().listdir(path)
+        pass
 
     def write(self, buf, path):
         return self._get_client().write(buf, path)
@@ -279,7 +273,7 @@ class ABSHandler:
         return "\n".join(lines)
 
     def listdir(self, path):
-        return self._get_client().listdir(path)
+        pass
 
     def write(self, buf, path):
         return self._get_client().write(buf, path)
@@ -307,7 +301,7 @@ class GCSHandler:
             return f.read()
 
     def listdir(self, path):
-        return self._get_client().ls(path)
+        pass
 
     def write(self, buf, path):
         # Wrapped so we can mock retry options during testing
@@ -351,7 +345,7 @@ class HDFSHandler:
             return f.read()
 
     def listdir(self, path):
-        return [f.path for f in self._get_client().get_file_info(FileSelector(path))]
+        pass
 
     def write(self, buf, path):
         with self._get_client().open_output_stream(path) as f:
@@ -521,7 +515,7 @@ def load_notebook_node(notebook_path):
 
 def list_notebook_files(path):
     """Returns a list of all the notebook files in a directory."""
-    return [p for p in papermill_io.listdir(path) if p.endswith('.ipynb')]
+    pass
 
 
 def get_pretty_path(path):

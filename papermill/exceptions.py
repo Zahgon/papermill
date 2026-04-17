@@ -75,8 +75,7 @@ def strip_color(text):
     """Remove most ANSI color and style sequences from a string
 
     Based on https://pypi.org/project/ansicolors/."""
-
-    return _COLORS.sub("", text)
+    pass
 
 
 def missing_dependency_generator(package, dep):
@@ -90,11 +89,4 @@ def missing_dependency_generator(package, dep):
 
 
 def missing_environment_variable_generator(package, env_key):
-    def missing_dep():
-        raise PapermillOptionalDependencyException(
-            f"The {package} optional dependency is present, but the environment "
-            f"variable {env_key} is not set. Please set this variable as "
-            f"required by {package} on your platform."
-        )
-
-    return missing_dep
+    pass

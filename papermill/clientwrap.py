@@ -84,27 +84,7 @@ class PapermillNotebookClient(NotebookClient):
         :param output: nbformat.notebooknode.NotebookNode
         :return:
         """
-        if output.output_type == "stream":
-            content = "".join(output.text)
-            if output.name == "stdout":
-                if self.log_output:
-                    self.log.info(content)
-                if self.stdout_file:
-                    self.stdout_file.write(content)
-                    self.stdout_file.flush()
-            elif output.name == "stderr":
-                if self.log_output:
-                    # In case users want to redirect stderr differently, pipe to warning
-                    self.log.warning(content)
-                if self.stderr_file:
-                    self.stderr_file.write(content)
-                    self.stderr_file.flush()
-        elif self.log_output and ("data" in output and "text/plain" in output.data):
-            self.log.info("".join(output.data['text/plain']))
+        pass
 
     def process_message(self, *arg, **kwargs):
-        output = super().process_message(*arg, **kwargs)
-        self.nb_man.autosave_cell()
-        if output and (self.log_output or self.stderr_file or self.stdout_file):
-            self.log_output_message(output)
-        return output
+        pass

@@ -32,7 +32,7 @@ class Bucket:
 
     def list(self, prefix='', delimiter=None):
         """Limits a list of Bucket's objects based on prefix and delimiter."""
-        return self.service._list(bucket=self.name, prefix=prefix, delimiter=delimiter, objects=True)
+        pass
 
 
 class Prefix:
@@ -187,57 +187,10 @@ class S3:
         page_size=1000,
         **kwargs,
     ):
-        assert bucket is not None, 'You must specify a bucket to list'
-
-        bucket = self._bucket_name(bucket)
-        paginator = self.client.get_paginator('list_objects_v2')
-        operation_parameters = {
-            'Bucket': bucket,
-            'Prefix': prefix,
-            'PaginationConfig': {'PageSize': page_size},
-        }
-        if delimiter:
-            operation_parameters['Delimiter'] = delimiter
-
-        page_iterator = paginator.paginate(**operation_parameters)
-
-        def sort(item):
-            if 'Key' in item:
-                return item['Key']
-            return item['Prefix']
-
-        for page in page_iterator:
-            locations = sorted([i for i in page.get('Contents', []) + page.get('CommonPrefixes', [])], key=sort)
-
-            for item in locations:
-                if objects or keys:
-                    if 'Key' in item:
-                        yield Key(
-                            bucket,
-                            item['Key'],
-                            size=item.get('Size'),
-                            etag=item.get('ETag'),
-                            last_modified=item.get('LastModified'),
-                            storage_class=item.get('StorageClass'),
-                            service=self,
-                        )
-                    elif objects:
-                        yield Prefix(bucket, item['Prefix'], service=self)
-                else:
-                    prefix = item['Key'] if 'Key' in item else item['Prefix']
-                    yield f's3://{bucket}/{prefix}'
+        pass
 
     def _put(self, source, dest, num_callbacks=10, policy='bucket-owner-full-control', **kwargs):
-        key = self._get_key(dest)
-        obj = self.s3.Object(key.bucket.name, key.name)
-
-        # support passing in open file obj.  Why did we do this in the past?
-
-        if not isinstance(source, str):
-            obj.upload_fileobj(source, ExtraArgs={'ACL': policy})
-        else:
-            obj.upload_file(source, ExtraArgs={'ACL': policy})
-        return key
+        pass
 
     def _put_string(self, source, dest, num_callbacks=10, policy='bucket-owner-full-control', **kwargs):
         key = self._get_key(dest)
@@ -390,10 +343,7 @@ class S3:
            if True return iterator rather than converting to list object
 
         """
-        assert self._is_s3(name), "name must be in form s3://bucket/key"
-
-        it = self._list(bucket=self._bucket_name(name), prefix=self._key_name(name), **kwargs)
-        return iter(it) if iterator else list(it)
+        pass
 
     def listdir(self, name, **kwargs):
         """
@@ -414,11 +364,7 @@ class S3:
             files or prefixes that are encountered
 
         """
-        assert self._is_s3(name), "name must be in form s3://bucket/prefix/"
-
-        if not name.endswith('/'):
-            name += "/"
-        return self.list(name, delimiter='/', **kwargs)
+        pass
 
     def read(self, source, compressed=False, encoding='UTF-8'):
         """

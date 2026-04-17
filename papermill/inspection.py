@@ -109,10 +109,4 @@ def inspect_notebook(notebook_path, parameters=None):
     Dict[str, Parameter]
        Mapping of (parameter name, {name, inferred_type_name, default, help})
     """
-    if isinstance(notebook_path, Path):
-        notebook_path = str(notebook_path)
-
-    nb = _open_notebook(notebook_path, parameters)
-
-    params = _infer_parameters(nb)
-    return {p.name: p._asdict() for p in params}
+    pass
